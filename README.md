@@ -1,60 +1,218 @@
 # tax-copilot
 
-**tax-copilot** is an AI copilot that reviews your personal tax return like a CPA — **it does NOT file taxes**.
+**tax-copilot** is an AI-powered assistant that helps you collect and organize your personal tax information through intelligent conversation — **it does NOT file taxes**.
 
-It helps individuals catch common mistakes, sanity-check year-over-year changes, and produce a “before you file” checklist.
+It uses a dynamic questioning agent to gather accurate tax data, adapting questions based on your responses to build a complete tax profile.
 
-> ⚠️ Disclaimer: tax-copilot is for informational purposes only and is not tax, legal, or financial advice.  
+> ⚠️ Disclaimer: tax-copilot is for informational purposes only and is not tax, legal, or financial advice.
 > Always verify with official sources or a qualified tax professional.
 
 ---
 
-## What it does (MVP)
+## What it does
 
-### 1) Baseline from last year (optional but recommended)
-Upload last year’s return (e.g., Form 1040 PDF or a tax summary). tax-copilot extracts a baseline “tax profile” and assumptions.
+### Pure Agentic Approach
 
-### 2) Ingest this year’s documents
-Upload this year’s W-2 / 1099s (or paste summaries).
+tax-copilot is a **pure agentic system** with no hardcoded rules. Instead of following rigid checklists, it uses LLM to:
 
-### 3) CPA-style review rules
-Runs a rules engine to detect:
-- missing forms / mismatches
-- high-risk areas (e.g., cost basis / common errors)
-- suspicious year-over-year anomalies
+1. **Conduct intelligent interviews** - Ask contextual questions that adapt to your situation
+2. **Extract structured data** - Convert conversational responses into validated tax profiles
+3. **Provide flexible guidance** - Understand nuances and handle edge cases dynamically
 
-### 4) Year-over-year sanity checks
-Highlights major changes and asks for confirmations (CPA-style).
+### Current Feature: Precheck Mode (Dynamic Questioning)
 
-### 5) Output: Review report + “Before you file” checklist
-Generates a structured report with severity levels:
-- 🔴 High risk
-- 🟡 Needs confirmation
-- 🟢 FYI
+The **Dynamic Questioning Agent** conducts a conversational tax interview:
+
+- **Contextual follow-ups**: Questions adapt based on your previous answers
+- **Natural language understanding**: Answer in plain English, no forms or codes
+- **Session persistence**: Pause and resume interviews anytime
+- **Confidence tracking**: System tracks certainty of extracted data
+- **Local storage**: All data stays on your machine in `~/.tax_copilot/`
+
+**Example conversation:**
+```
+Agent: Let's start with your income. Did you have a W-2 job in 2024?
+You: Yes, I worked at two companies
+
+Agent: Got it! Did you work at both companies for the full year, or
+       did you change jobs mid-year?
+You: I switched in June
+
+Agent: Thanks. Just to confirm - was there any gap between jobs, or
+       did you transition directly?
+You: No gap, started the new job the next week
+```
 
 ---
 
 ## What it does NOT do
-- ❌ e-file
-- ❌ submit to IRS/state
-- ❌ guarantee correct tax liability
-- ❌ replace TurboTax / FreeTaxUSA / a CPA
 
-tax-copilot is designed to complement existing filing tools.
+- ❌ e-file or submit to IRS/state
+- ❌ calculate tax liability
+- ❌ replace TurboTax / FreeTaxUSA / a CPA
+- ❌ provide tax advice or interpretations
+
+tax-copilot is designed to help you organize your tax information before using traditional filing tools.
 
 ---
 
 ## Quickstart
 
 ### Prerequisites
-- Python 3.11+ (recommended)
-- An LLM provider key (OpenAI-compatible or your own)
+- Python 3.11+
+- Anthropic API key (Claude) or OpenAI API key (GPT)
 
 ### 1) Setup
 ```bash
 git clone https://github.com/<your-org>/tax-copilot.git
 cd tax-copilot
 python -m venv .venv
-source .venv/bin/activate
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 pip install -U pip
+pip install -e .
+```
+
+### 2) Configure API Key
+
+Create a `.env` file in the project root:
+```bash
+# Copy example and edit with your key
+cp .env.example .env
+```
+
+Edit `.env` and add your API key:
+```
+ANTHROPIC_API_KEY=sk-ant-your-key-here
+# Or for OpenAI:
+OPENAI_API_KEY=sk-your-key-here
+```
+
+Get API keys:
+- Anthropic (Claude): https://console.anthropic.com/
+- OpenAI (GPT): https://platform.openai.com/api-keys
+
+### 3) Run Your First Interview
+
+Start collecting tax information:
+```bash
+tax-copilot precheck --user john --year 2024
+```
+
+The agent will guide you through a conversational interview, asking about:
+- Filing status
+- Income sources (W-2, self-employment, investments)
+- Deductions (student loans, itemized deductions)
+- Dependents
+- Other relevant tax information
+
+**Commands during interview:**
+- Type your answers naturally
+- Type `exit` or `quit` to pause
+- Press `Ctrl+C` to interrupt
+
+### 4) Resume a Paused Interview
+
+If you exit an interview, resume it later:
+```bash
+# List your sessions
+tax-copilot precheck --list
+
+# Resume a specific session
+tax-copilot precheck --session sess_20240115_103000_abc123
+```
+
+### 5) View Your Tax Profile
+
+After completing an interview:
+```bash
+# View summary
+tax-copilot profile --user john --year 2024
+
+# Export to JSON
+tax-copilot profile --user john --year 2024 --format json --out profile.json
+```
+
+---
+
+## CLI Reference
+
+### `tax-copilot precheck`
+
+Start or continue a tax interview.
+
+**Start new interview:**
+```bash
+tax-copilot precheck --user <user_id> --year <tax_year>
+```
+
+**Resume existing:**
+```bash
+tax-copilot precheck --session <session_id>
+```
+
+**List sessions:**
+```bash
+tax-copilot precheck --list [--user <user_id>] [--year <tax_year>]
+```
+
+**Options:**
+- `--llm-provider`: Choose LLM provider (`anthropic` or `openai`, default: `anthropic`)
+
+### `tax-copilot profile`
+
+View or export saved tax profiles.
+
+**View summary:**
+```bash
+tax-copilot profile --user <user_id> --year <tax_year>
+```
+
+**Export to JSON:**
+```bash
+tax-copilot profile --user <user_id> --year <tax_year> --format json --out profile.json
+```
+
+
+### Running Tests
+
+```bash
+pip install -e ".[test]"
+pytest
+```
+
+### Code Quality
+
+```bash
 pip install -e ".[dev]"
+
+# Format code
+black tax_copilot/
+
+# Lint code
+ruff check tax_copilot/
+```
+
+---
+
+## Contributing
+
+Contributions welcome! This project is in active development.
+
+**Areas needing help:**
+- Unit tests for agentic components
+- Additional LLM provider integrations
+- Document parsing (W-2, 1099 extraction)
+- State-specific tax rules
+
+---
+
+## License
+
+MIT License - see LICENSE file for details.
+
+---
+
+## Support
+
+- **Issues**: https://github.com/<your-org>/tax-copilot/issues
+- **Discussions**: https://github.com/<your-org>/tax-copilot/discussions

@@ -14,7 +14,7 @@ __all__ = [
 
 
 def create_provider(
-    provider_name: str = "anthropic",
+    provider_name: str = "openai",
     api_key: str | None = None,
     model: str | None = None,
 ) -> LLMProvider:

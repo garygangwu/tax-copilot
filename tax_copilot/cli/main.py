@@ -16,7 +16,7 @@ from tax_copilot.agents.precheck import QuestioningAgent
 from tax_copilot.agents.storage import SessionStore, ProfileBuilder
 
 # Load environment variables from .env file
-load_dotenv()
+load_dotenv(override=True)
 
 
 def _load_profile(path: str) -> TaxProfile:
@@ -73,8 +73,8 @@ def review(prior: Optional[str], current: str, out_dir: str) -> None:
 @click.option(
     "--llm-provider",
     type=click.Choice(["anthropic", "openai"], case_sensitive=False),
-    default="anthropic",
-    help="LLM provider to use (default: anthropic)",
+    default=lambda: os.getenv("DEFAULT_LLM_PROVIDER", "openai"),
+    help="LLM provider to use (default: from DEFAULT_LLM_PROVIDER env var or 'openai')",
 )
 def precheck(
     user: Optional[str],

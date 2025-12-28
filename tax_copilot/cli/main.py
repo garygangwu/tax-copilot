@@ -71,6 +71,11 @@ def review(prior: Optional[str], current: str, out_dir: str) -> None:
 @click.option("--session", type=str, help="Resume existing session by ID")
 @click.option("--list", "list_sessions", is_flag=True, help="List active sessions")
 @click.option(
+    "--force-complete",
+    is_flag=True,
+    help="Force completion of a stuck session (use with --session)",
+)
+@click.option(
     "--llm-provider",
     type=click.Choice(["anthropic", "openai"], case_sensitive=False),
     default=lambda: os.getenv("DEFAULT_LLM_PROVIDER", "openai"),
@@ -81,6 +86,7 @@ def precheck(
     year: Optional[int],
     session: Optional[str],
     list_sessions: bool,
+    force_complete: bool,
     llm_provider: str,
 ) -> None:
     """
@@ -92,13 +98,16 @@ def precheck(
     Resume an existing session:
         tax-copilot precheck --session sess_20240115_103000_abc123
 
+    Force complete a stuck session:
+        tax-copilot precheck --session sess_xxx --force-complete
+
     List all sessions:
         tax-copilot precheck --list
 
     List sessions for a specific user:
         tax-copilot precheck --list --user john
     """
-    asyncio.run(_run_precheck(user, year, session, list_sessions, llm_provider))
+    asyncio.run(_run_precheck(user, year, session, list_sessions, force_complete, llm_provider))
 
 
 async def _run_precheck(
@@ -106,12 +115,72 @@ async def _run_precheck(
     year: Optional[int],
     session_id: Optional[str],
     list_sessions: bool,
+    force_complete: bool,
     llm_provider: str,
 ) -> None:
     """Async implementation of precheck command."""
 
     # Initialize storage
     storage = SessionStore()
+
+    # Handle --force-complete flag
+    if force_complete:
+        if not session_id:
+            click.echo("Error: --force-complete requires --session", err=True)
+            return
+
+        click.echo(f"\n=== Force Completing Session {session_id} ===\n")
+
+        # Initialize LLM provider
+        try:
+            provider = create_provider(provider_name=llm_provider)
+        except Exception as e:
+            click.echo(f"Error initializing {llm_provider} provider: {e}", err=True)
+            return
+
+        # Initialize agent and force complete
+        agent = QuestioningAgent(llm_provider=provider, storage=storage)
+
+        try:
+            # Load session
+            from tax_copilot.agents.precheck.data_organizer import DataOrganizer
+            from tax_copilot.core.conversation import ConversationState
+
+            session = storage.load_session(session_id)
+
+            click.echo(f"Current state: {session.state.value}")
+            click.echo(f"Topics covered: {session.topics_covered}")
+            click.echo(f"Topics remaining: {session.topics_remaining}\n")
+
+            # Force transition to COMPLETED
+            session.transition_state(ConversationState.COMPLETED)
+
+            # Reorganize data
+            click.echo("Reorganizing extracted data...")
+            organizer = DataOrganizer(provider)
+            organized_data = await organizer.organize(session)
+            session.extracted_data = organized_data
+            storage.save_session(session)
+
+            # Build profile
+            click.echo("Building tax profile...")
+            profile = agent.profile_builder.build_from_session(session)
+
+            # Save profile
+            agent.profile_builder.save_profile(profile, user_id=session.user_id)
+
+            click.echo("\n" + "=" * 50)
+            click.echo("Session Force Completed Successfully!")
+            click.echo("=" * 50)
+            click.echo(f"\nTax profile saved to:")
+            click.echo(f"  ~/.tax_copilot/profiles/{session.user_id}_{session.tax_year}.json\n")
+
+        except Exception as e:
+            click.echo(f"\nError during force completion: {e}", err=True)
+            import traceback
+            traceback.print_exc()
+
+        return
 
     # Handle --list flag
     if list_sessions:
@@ -140,6 +209,7 @@ async def _run_precheck(
 
     # Initialize LLM provider
     try:
+        print(f"Initializing {llm_provider} provider")
         provider = create_provider(provider_name=llm_provider)
     except ValueError as e:
         click.echo(f"Error: {e}", err=True)

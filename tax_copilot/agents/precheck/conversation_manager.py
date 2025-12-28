@@ -13,6 +13,7 @@ from .prompts import (
     get_review_prompt,
     EXTRACTION_SCHEMA,
 )
+from .completion_evaluator import CompletionEvaluator, CompletionEvaluation
 
 
 class ConversationManager:
@@ -49,6 +50,16 @@ class ConversationManager:
         ConversationState.COMPLETED,
     ]
 
+    # Reverse mapping: topic to state
+    TOPIC_TO_STATE = {
+        "basic_info": ConversationState.COLLECTING_BASIC_INFO,
+        "income": ConversationState.COLLECTING_INCOME,
+        "deductions": ConversationState.COLLECTING_DEDUCTIONS,
+        "dependents": ConversationState.COLLECTING_DEPENDENTS,
+        "investments": ConversationState.COLLECTING_INVESTMENTS,
+        "reviewing": ConversationState.REVIEWING,
+    }
+
     def __init__(
         self,
         session: Session,
@@ -69,6 +80,7 @@ class ConversationManager:
         self.llm = llm_provider
         self.storage = storage
         self.profile_builder = profile_builder or ProfileBuilder()
+        self.completion_evaluator = CompletionEvaluator(llm_provider)
 
     async def process_user_input(self, user_message: str) -> str:
         """
@@ -171,10 +183,10 @@ class ConversationManager:
         messages = []
 
         # Get recent messages (last 20 for context window management)
-        recent_messages = self.session.get_recent_messages(count=20)
+        recent_messages = self.session.get_recent_messages(count=100)
 
         for msg in recent_messages:
-            if msg.role in ["user", "assistant"]:
+            if msg.role in ["user", "assistant", "agent"]:
                 messages.append(
                     Message(
                         role=msg.role if msg.role == "user" else "assistant",
@@ -204,6 +216,7 @@ class ConversationManager:
         """
         Check if enough information collected to transition to next state.
 
+        Uses LLM-based CompletionEvaluator for intelligent assessment.
         Updates session state if transition should occur.
         """
         current_state = self.session.state
@@ -213,68 +226,65 @@ class ConversationManager:
         if current_state in [ConversationState.COMPLETED, ConversationState.STARTED]:
             return
 
-        # Check if current topic has sufficient data
-        if self._is_topic_complete(current_topic):
-            # Mark topic as covered
-            if current_topic not in self.session.topics_covered:
-                self.session.mark_topic_covered(current_topic)
-
-            # Determine next state
-            next_state = self._get_next_state(current_state)
-
-            if next_state:
-                self.session.transition_state(next_state)
-
-                # If transitioning to REVIEWING, check overall completeness
-                if next_state == ConversationState.REVIEWING:
-                    completeness = self.profile_builder.calculate_completeness(
-                        self.session
-                    )
-                    # Only review if we have decent completeness
-                    if completeness < 0.6:
-                        # Skip review, need more data
-                        # Go back to collecting (this is a safeguard)
-                        pass
-
-    def _is_topic_complete(self, topic: str) -> bool:
-        """
-        Determine if a topic has enough information.
-
-        Args:
-            topic: Topic name
-
-        Returns:
-            True if topic is complete, False otherwise
-        """
-        data = self.session.extracted_data.get(topic, {})
-
-        # Define minimum requirements per topic
-        if topic == "basic_info":
-            return "filing_status" in data
-
-        elif topic == "income":
-            # Need at least total income and w2 count
-            return "total_income" in data and "w2_count" in data
-
-        elif topic == "deductions":
-            # Deductions are somewhat optional, but we should ask about common ones
-            # Consider complete if we've asked about student loans or itemizing
-            return (
-                "student_loan_interest" in data
-                or "itemized" in data
-                or len(data) >= 2
+        # Use CompletionEvaluator to assess if topic is complete
+        try:
+            evaluation = await self.completion_evaluator.evaluate(
+                session=self.session,
+                current_topic=current_topic,
             )
 
-        elif topic == "dependents":
-            # Need to know count (even if zero)
-            return "count" in data
+            if len(self.session.topics_remaining) == 0 and evaluation.topic_complete:
+                # Ready to complete the interview
+                self.session.transition_state(ConversationState.COMPLETED)
 
-        elif topic == "investments":
-            # Investments are optional for many users
-            # Consider complete if any investment data present or explicitly declined
-            return len(data) > 0 or topic in self.session.topics_covered
+            # Handle evaluation result
+            await self._handle_evaluation(evaluation)
 
-        return False
+        except Exception as e:
+            # If evaluator fails, don't transition (safe fallback)
+            print(f"Completion evaluation failed: {e}")
+            return
+
+    async def _handle_evaluation(self, evaluation: CompletionEvaluation) -> None:
+        """
+        Handle the completion evaluation result.
+
+        Args:
+            evaluation: CompletionEvaluation from the evaluator
+        """
+        current_state = self.session.state
+        current_topic = self.STATE_TO_TOPIC.get(current_state)
+
+        if evaluation.next_action == "complete_interview":
+            # Ready to complete the interview
+            if current_topic and current_topic not in self.session.topics_covered:
+                self.session.mark_topic_covered(current_topic)
+
+            # Transition to REVIEWING
+            self.session.transition_state(ConversationState.REVIEWING)
+
+        elif evaluation.next_action == "advance_to_next_topic":
+            # Mark current topic as covered
+            if current_topic and current_topic not in self.session.topics_covered:
+                self.session.mark_topic_covered(current_topic)
+
+            # Determine next state based on evaluation suggestion
+            if evaluation.next_topic:
+                next_state = self.TOPIC_TO_STATE.get(evaluation.next_topic)
+                if next_state:
+                    self.session.transition_state(next_state)
+                else:
+                    # Fallback: use sequential transition
+                    next_state = self._get_next_state(current_state)
+                    if next_state:
+                        self.session.transition_state(next_state)
+            else:
+                # No specific next topic suggested, use sequential
+                next_state = self._get_next_state(current_state)
+                if next_state:
+                    self.session.transition_state(next_state)
+
+        # If next_action is "continue_topic", don't transition (keep current state)
 
     def _get_next_state(
         self, current_state: ConversationState

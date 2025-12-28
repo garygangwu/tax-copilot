@@ -87,10 +87,50 @@ class ProfileBuilder:
         return profile
 
     def _build_income(self, income_data: dict[str, Any]) -> Income:
-        """Build Income object from extracted data."""
-        total_income = self._parse_money(income_data.get("total_income", 0))
-        w2_count = int(income_data.get("w2_count", 0))
-        ira_contribution = self._parse_money(income_data.get("ira_contribution", 0))
+        """Build Income object from extracted data with flexible field name handling."""
+
+        # Try multiple field names for total_income (most common variations)
+        total_income = self._parse_money(
+            income_data.get("total_income")
+            or income_data.get("employment_income")
+            or income_data.get("salary")
+            or income_data.get("annual_salary")
+            or income_data.get("income_amount")
+            or 0
+        )
+
+        # If no total_income found, try to calculate from components
+        if total_income.cents == 0:
+            employment = self._parse_money(income_data.get("employment_income", 0))
+            investment = self._parse_money(income_data.get("investment_income", 0))
+            rental = self._parse_money(income_data.get("rental_income", 0))
+            self_employment = self._parse_money(income_data.get("self_employment_income", 0))
+
+            total_cents = (
+                employment.cents
+                + investment.cents
+                + rental.cents
+                + self_employment.cents
+            )
+
+            if total_cents > 0:
+                total_income = Money(cents=total_cents)
+
+        # Try multiple field names for w2_count
+        w2_count = int(
+            income_data.get("w2_count")
+            or income_data.get("employer_count")
+            or income_data.get("number_of_employers")
+            or (1 if total_income.cents > 0 else 0)  # Fallback: if has income, assume 1 W-2
+        )
+
+        # IRA contribution
+        ira_contribution = self._parse_money(
+            income_data.get("ira_contribution")
+            or income_data.get("ira_contributions")
+            or income_data.get("retirement_contribution")
+            or 0
+        )
 
         return Income(
             total_income=total_income,
@@ -99,12 +139,44 @@ class ProfileBuilder:
         )
 
     def _build_deductions(self, deductions_data: dict[str, Any]) -> Deductions:
-        """Build Deductions object from extracted data."""
+        """Build Deductions object from extracted data with flexible field name handling."""
+
+        # Student loan interest - try multiple variations
         student_loan_interest = self._parse_money(
-            deductions_data.get("student_loan_interest", 0)
+            deductions_data.get("student_loan_interest")
+            or deductions_data.get("student_loan")
+            or deductions_data.get("student_loans")
+            or 0
         )
+
+        # Itemized deductions flag
         itemized = bool(deductions_data.get("itemized", False))
-        itemized_total = self._parse_money(deductions_data.get("itemized_total", 0))
+
+        # Itemized total - try multiple variations
+        itemized_total = self._parse_money(
+            deductions_data.get("itemized_total")
+            or deductions_data.get("itemized_deductions")
+            or deductions_data.get("total_itemized")
+            or 0
+        )
+
+        # If no itemized_total but has components, calculate it
+        if itemized_total.cents == 0 and itemized:
+            charitable = self._parse_money(deductions_data.get("charitable_contributions", 0))
+            mortgage = self._parse_money(deductions_data.get("mortgage_interest", 0))
+            state_local = self._parse_money(deductions_data.get("state_local_taxes", 0))
+            medical = self._parse_money(deductions_data.get("medical_expenses", 0))
+
+            total_cents = (
+                charitable.cents
+                + mortgage.cents
+                + state_local.cents
+                + medical.cents
+                + student_loan_interest.cents
+            )
+
+            if total_cents > 0:
+                itemized_total = Money(cents=total_cents)
 
         return Deductions(
             student_loan_interest=student_loan_interest,
@@ -113,11 +185,34 @@ class ProfileBuilder:
         )
 
     def _build_dependents(self, dependents_data: dict[str, Any]) -> Dependents:
-        """Build Dependents object from extracted data."""
-        count = int(dependents_data.get("count", 0))
-        ages = dependents_data.get("ages", [])
+        """Build Dependents object from extracted data with flexible field name handling."""
+
+        # Count - try multiple variations
+        count = int(
+            dependents_data.get("count")
+            or dependents_data.get("number_of_dependents")
+            or dependents_data.get("dependent_count")
+            or 0
+        )
+
+        # Ages
+        ages = (
+            dependents_data.get("ages")
+            or dependents_data.get("dependent_ages")
+            or dependents_data.get("children_ages")
+            or []
+        )
+
+        # Ensure ages is a list
+        if not isinstance(ages, list):
+            ages = []
+
+        # Child tax credit
         claiming_child_tax_credit = bool(
-            dependents_data.get("claiming_child_tax_credit", False)
+            dependents_data.get("claiming_child_tax_credit")
+            or dependents_data.get("child_tax_credit")
+            or dependents_data.get("claiming_ctc")
+            or False
         )
 
         return Dependents(

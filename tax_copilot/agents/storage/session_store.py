@@ -165,6 +165,12 @@ class SessionStore:
         Returns:
             List of Session objects, sorted by updated_at (newest first)
         """
+        print(f"User ID: {user_id}")
+        print(f"Tax year: {tax_year}")
+        print(f"Listing sessions in {self.sessions_dir}")
+        for session_file in self.sessions_dir.glob("sess_*.json"):
+            print(f"Session file: {session_file}")
+
         sessions = []
 
         for session_file in self.sessions_dir.glob("sess_*.json"):

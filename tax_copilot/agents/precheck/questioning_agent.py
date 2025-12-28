@@ -11,6 +11,7 @@ from tax_copilot.agents.storage.session_store import SessionStore
 from tax_copilot.agents.storage.profile_builder import ProfileBuilder
 from .conversation_manager import ConversationManager
 from .prompts import get_opening_question_prompt, EXTRACTION_SCHEMA
+from .data_organizer import DataOrganizer
 
 
 class QuestioningAgent:
@@ -41,6 +42,7 @@ class QuestioningAgent:
         self.llm = llm_provider
         self.storage = storage or SessionStore()
         self.profile_builder = profile_builder or ProfileBuilder()
+        self.data_organizer = DataOrganizer(llm_provider)
 
     async def start_interview(
         self,
@@ -128,9 +130,17 @@ class QuestioningAgent:
         if is_complete:
             # Build final profile
             try:
+                # Step 1: Reorganize extracted data into proper structure
+                organized_data = await self.data_organizer.organize(session)
+
+                # Update session with organized data
+                session.extracted_data = organized_data
+                self.storage.save_session(session)
+
+                # Step 2: Build profile from organized data
                 profile = self.profile_builder.build_from_session(session)
 
-                # Save profile to disk
+                # Step 3: Save profile to disk
                 self.profile_builder.save_profile(profile, user_id=session.user_id)
 
             except Exception as e:

@@ -35,7 +35,6 @@ class ConversationManager:
         ConversationState.COLLECTING_DEDUCTIONS: "deductions",
         ConversationState.COLLECTING_DEPENDENTS: "dependents",
         ConversationState.COLLECTING_INVESTMENTS: "investments",
-        ConversationState.REVIEWING: "review",
         ConversationState.COMPLETED: "completed",
     }
 
@@ -46,7 +45,6 @@ class ConversationManager:
         ConversationState.COLLECTING_INCOME,
         ConversationState.COLLECTING_DEDUCTIONS,
         ConversationState.COLLECTING_DEPENDENTS,
-        ConversationState.REVIEWING,
         ConversationState.COMPLETED,
     ]
 
@@ -56,8 +54,7 @@ class ConversationManager:
         "income": ConversationState.COLLECTING_INCOME,
         "deductions": ConversationState.COLLECTING_DEDUCTIONS,
         "dependents": ConversationState.COLLECTING_DEPENDENTS,
-        "investments": ConversationState.COLLECTING_INVESTMENTS,
-        "reviewing": ConversationState.REVIEWING,
+        "investments": ConversationState.COLLECTING_INVESTMENTS
     }
 
     def __init__(
@@ -88,10 +85,10 @@ class ConversationManager:
 
         Steps:
         1. Add user message to session
-        2. Call LLM with conversation history + current state
-        3. Parse LLM response (extract data + next question)
-        4. Update session with extracted data
-        5. Determine if state transition needed
+        2. Check if state transition needed (BEFORE generating next question)
+        3. Generate LLM response based on (possibly updated) topic
+        4. Parse LLM response (extract data + next question)
+        5. Update session with extracted data
         6. Save session to disk
         7. Return agent's next question
 
@@ -101,24 +98,14 @@ class ConversationManager:
         Returns:
             Agent's next question or response
         """
-        # Add user message to session
+        # Step 1: Add user message to session
         self.session.add_message("user", user_message)
 
-        # Check if this is a confirmation during review
-        if self.session.state == ConversationState.REVIEWING:
-            if self._is_confirmation(user_message):
-                # User confirmed - transition to completed
-                self.session.transition_state(ConversationState.COMPLETED)
-                self.storage.save_session(self.session)
-                return "Perfect! Your tax information has been saved. You can now use this data for your tax review."
-            else:
-                # User wants to make changes - ask what to change
-                response = "No problem! What would you like to change or add?"
-                self.session.add_message("agent", response)
-                self.storage.save_session(self.session)
-                return response
+        # Step 2: Check state transition BEFORE generating next question
+        # This ensures the next question is based on the correct (updated) topic
+        await self._check_state_transition()
 
-        # Generate response from LLM
+        # Step 3: Generate response from LLM (based on updated state)
         try:
             llm_response = await self._generate_llm_response()
 
@@ -129,7 +116,7 @@ class ConversationManager:
             extracted_data = response_data.get("extracted_data")
             confidence = response_data.get("confidence", "medium")
 
-            # Update session with extracted data
+            # Step 4: Update session with extracted data
             if extracted_data:
                 current_topic = self.STATE_TO_TOPIC.get(
                     self.session.state, "unknown"
@@ -137,17 +124,14 @@ class ConversationManager:
                 # Nest data under topic
                 self.session.update_extracted_data({current_topic: extracted_data})
 
-            # Add agent message to session
+            # Step 5: Add agent message to session
             self.session.add_message(
                 "agent",
                 next_question,
                 metadata={"confidence": confidence},
             )
 
-            # Check if should transition state
-            await self._check_state_transition()
-
-            # Save session
+            # Step 6: Save session
             self.storage.save_session(self.session)
 
             return next_question
@@ -233,12 +217,12 @@ class ConversationManager:
                 current_topic=current_topic,
             )
 
+            # Handle evaluation result
+            await self._handle_evaluation(evaluation)
+
             if len(self.session.topics_remaining) == 0 and evaluation.topic_complete:
                 # Ready to complete the interview
                 self.session.transition_state(ConversationState.COMPLETED)
-
-            # Handle evaluation result
-            await self._handle_evaluation(evaluation)
 
         except Exception as e:
             # If evaluator fails, don't transition (safe fallback)
@@ -259,9 +243,6 @@ class ConversationManager:
             # Ready to complete the interview
             if current_topic and current_topic not in self.session.topics_covered:
                 self.session.mark_topic_covered(current_topic)
-
-            # Transition to REVIEWING
-            self.session.transition_state(ConversationState.REVIEWING)
 
         elif evaluation.next_action == "advance_to_next_topic":
             # Mark current topic as covered
@@ -334,50 +315,3 @@ class ConversationManager:
         ]
 
         return any(conf in message_lower for conf in confirmations)
-
-    async def get_next_question(self) -> str:
-        """
-        Generate the next question based on current state.
-
-        Used for initiating conversation or after state transitions.
-
-        Returns:
-            Next question to ask
-        """
-        current_topic = self.STATE_TO_TOPIC.get(self.session.state)
-
-        # If reviewing, generate review summary
-        if self.session.state == ConversationState.REVIEWING:
-            system_prompt = get_review_prompt(
-                extracted_data=self.session.extracted_data,
-                tax_year=self.session.tax_year,
-            )
-        else:
-            # Generate question for current topic
-            system_prompt = get_system_prompt(
-                tax_year=self.session.tax_year,
-                current_topic=current_topic,
-                topics_covered=self.session.topics_covered,
-            )
-
-        # Use minimal message history for initial questions
-        messages = [
-            Message(
-                role="user",
-                content="Let's begin.",
-            )
-        ]
-
-        response = await self.llm.generate(
-            messages=messages,
-            system_prompt=system_prompt,
-            response_schema=EXTRACTION_SCHEMA,
-            temperature=0.7,
-        )
-
-        try:
-            response_data = json.loads(response.content)
-            next_question = response_data.get("next_question", "How can I help you?")
-            return next_question
-        except json.JSONDecodeError:
-            return "How can I help you with your tax information today?"

@@ -69,10 +69,15 @@ Reorganize this data into the standard tax profile structure with these EXACT to
 **basic_info** should contain ONLY:
 - filing_status (values: "single", "mfj", "mfs", "hoh")
 - state (two-letter code like "CA", "NY")
-- taxpayer_name (optional)
-- taxpayer_ssn (optional)
-- spouse_name (optional, if mfj)
-- spouse_ssn (optional, if mfj)
+
+**PRIVACY NOTE:** This is a HIGH-LEVEL tax planning tool. Do NOT include PII like:
+- ❌ Names (taxpayer_name, spouse_name)
+- ❌ SSNs (taxpayer_ssn, spouse_ssn)
+- ❌ Dates of birth
+- ❌ Addresses
+- ❌ Phone numbers
+
+If PII appears in the raw data, EXCLUDE it from the organized output.
 
 **income** should contain:
 - total_income (total of all income sources, in dollars or cents)

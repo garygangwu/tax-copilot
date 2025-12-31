@@ -315,5 +315,5 @@ MIT License - see LICENSE file for details.
 
 ## Support
 
-- **Issues**: https://github.com/<your-org>/tax-copilot/issues
-- **Discussions**: https://github.com/<your-org>/tax-copilot/discussions
+- **Issues**: https://github.com/garygangwu/tax-copilot/issues
+- **Discussions**: https://github.com/garygangwu/tax-copilot/discussions

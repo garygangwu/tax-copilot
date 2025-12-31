@@ -1,11 +1,11 @@
 """Completion Evaluator Agent - LLM-driven topic completion assessment."""
 
-import json
 from typing import Literal, Optional
 from pydantic import BaseModel
 
 from tax_copilot.core.conversation import Session, ConversationState
 from tax_copilot.agents.providers.base import LLMProvider, Message
+from tax_copilot.agents.utils import parse_json_response
 
 
 class CompletionEvaluation(BaseModel):
@@ -221,10 +221,10 @@ class CompletionEvaluator:
             )
 
             # Parse response
-            evaluation_data = json.loads(response.content)
+            evaluation_data = parse_json_response(response.content)
             return CompletionEvaluation(**evaluation_data)
 
-        except json.JSONDecodeError as e:
+        except Exception as e:
             # Fallback: assume not complete
             return CompletionEvaluation(
                 topic_complete=False,

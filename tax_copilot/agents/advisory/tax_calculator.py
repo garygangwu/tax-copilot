@@ -1,11 +1,11 @@
 """Tax Calculator Agent - calculates federal and state tax liability."""
 
-import json
 import asyncio
 from typing import Any
 
 from tax_copilot.core.models import TaxProfile, Money
 from tax_copilot.agents.providers.base import LLMProvider, Message
+from tax_copilot.agents.utils import parse_json_response
 from .models import TaxCalculation
 from .prompts import get_federal_tax_prompt, get_state_tax_prompt
 
@@ -119,7 +119,7 @@ class TaxCalculator:
 
         # Parse JSON response
         try:
-            data = json.loads(response.content)
+            data = parse_json_response(response.content)
 
             # Validate data
             if "federal_tax" not in data:
@@ -163,7 +163,7 @@ class TaxCalculator:
 
         # Parse JSON response
         try:
-            data = json.loads(response.content)
+            data = parse_json_response(response.content)
 
             # Validate data
             if "state_tax" not in data:

@@ -1,6 +1,5 @@
 """Questioning Agent - High-level orchestrator for tax interviews."""
 
-import json
 from typing import Any
 from datetime import datetime
 
@@ -9,6 +8,7 @@ from tax_copilot.core.models import TaxProfile
 from tax_copilot.agents.providers.base import LLMProvider, Message
 from tax_copilot.agents.storage.session_store import SessionStore
 from tax_copilot.agents.storage.profile_builder import ProfileBuilder
+from tax_copilot.agents.utils import parse_json_response
 from .conversation_manager import ConversationManager
 from .prompts import get_opening_question_prompt, EXTRACTION_SCHEMA
 from .data_organizer import DataOrganizer
@@ -288,7 +288,7 @@ class QuestioningAgent:
                 temperature=0.7,
             )
 
-            response_data = json.loads(response.content)
+            response_data = parse_json_response(response.content)
             return response_data.get(
                 "next_question",
                 f"Hi! Let's get started on your {tax_year} tax information. "

@@ -9,6 +9,7 @@ from pathlib import Path
 from tax_copilot.core.models import TaxProfile
 from tax_copilot.agents.providers.base import LLMProvider, Message
 from tax_copilot.agents.storage.profile_builder import ProfileBuilder
+from tax_copilot.agents.utils import parse_json_response
 from .models import AdvisoryReport
 from .tax_calculator import TaxCalculator
 from .optimization_agent import OptimizationAgent
@@ -178,7 +179,7 @@ class AdvisoryAgent:
                 max_tokens=1500,
             )
 
-            data = json.loads(response.content)
+            data = parse_json_response(response.content)
             return data.get("executive_summary", ""), data.get("top_recommendations", [])
 
         except Exception as e:

@@ -1,10 +1,10 @@
 """Deduction Finder Agent - identifies potentially missed deductions."""
 
-import json
 from typing import Any
 
 from tax_copilot.core.models import TaxProfile, Money
 from tax_copilot.agents.providers.base import LLMProvider, Message
+from tax_copilot.agents.utils import parse_json_response
 from .models import MissedDeduction, DeductionFinderReport
 from .prompts import get_deduction_finder_prompt
 
@@ -52,7 +52,7 @@ class DeductionFinder:
             )
 
             # Parse JSON response
-            data = json.loads(response.content)
+            data = parse_json_response(response.content)
 
             # Build missed deduction objects
             missed_deductions = []

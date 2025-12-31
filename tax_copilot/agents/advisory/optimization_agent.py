@@ -1,10 +1,10 @@
 """Optimization Agent - identifies tax-saving strategies."""
 
-import json
 from typing import Any
 
 from tax_copilot.core.models import TaxProfile, Money
 from tax_copilot.agents.providers.base import LLMProvider, Message
+from tax_copilot.agents.utils import parse_json_response
 from .models import OptimizationStrategy, OptimizationReport, TaxCalculation
 from .prompts import get_optimization_prompt
 
@@ -57,7 +57,7 @@ class OptimizationAgent:
             )
 
             # Parse JSON response
-            data = json.loads(response.content)
+            data = parse_json_response(response.content)
 
             # Build strategy objects
             strategies = []

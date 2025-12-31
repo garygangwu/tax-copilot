@@ -34,7 +34,7 @@ class OpenAIProvider(LLMProvider):
                 "environment variable or pass api_key parameter."
             )
 
-        self.model = model or "gpt-4o-mini"
+        self.model = model or "gpt-4o"
         self.client = AsyncOpenAI(api_key=self.api_key)
 
     async def generate(

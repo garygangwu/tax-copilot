@@ -1,10 +1,10 @@
 """Data Organizer Agent - Reorganizes extracted data into proper topic buckets."""
 
-import json
 from typing import Any
 
 from tax_copilot.core.conversation import Session
 from tax_copilot.agents.providers.base import LLMProvider, Message
+from tax_copilot.agents.utils import parse_json_response
 
 
 # JSON Schema for organized data output
@@ -206,7 +206,7 @@ class DataOrganizer:
             )
 
             # Parse and return organized data
-            organized_data = json.loads(response.content)
+            organized_data = parse_json_response(response.content)
 
             # Ensure all required keys exist
             for key in ["basic_info", "income", "deductions", "dependents"]:

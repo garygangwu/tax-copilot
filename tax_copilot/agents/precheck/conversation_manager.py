@@ -1,12 +1,12 @@
 """Conversation manager - orchestrates dialog flow and state transitions."""
 
-import json
 from typing import Any
 
 from tax_copilot.core.conversation import Session, ConversationState
 from tax_copilot.agents.providers.base import LLMProvider, Message
 from tax_copilot.agents.storage.session_store import SessionStore
 from tax_copilot.agents.storage.profile_builder import ProfileBuilder
+from tax_copilot.agents.utils import parse_json_response
 from .prompts import (
     get_system_prompt,
     get_topic_transition_prompt,
@@ -110,7 +110,7 @@ class ConversationManager:
             llm_response = await self._generate_llm_response()
 
             # Parse structured response
-            response_data = json.loads(llm_response.content)
+            response_data = parse_json_response(llm_response.content)
 
             next_question = response_data.get("next_question", "")
             extracted_data = response_data.get("extracted_data")

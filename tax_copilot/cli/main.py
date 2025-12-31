@@ -33,7 +33,6 @@ def _load_profile(path: str) -> TaxProfile:
 @click.group()
 def cli() -> None:
     """tax-copilot CLI."""
-    print("CLI started")
 
 
 @cli.command()
@@ -293,7 +292,7 @@ async def _run_precheck(
                     click.echo("=" * 50)
                     click.echo(
                         f"\nYour tax profile has been saved to:\n"
-                        f"  ~/.tax_copilot/profiles/{profile.tax_year}.json\n"
+                        f"  ~/.tax_copilot/profiles/{profile.user_id}_{profile.tax_year}.json\n"
                     )
                     click.echo("You can now use this profile for tax analysis.")
                 else:
@@ -400,6 +399,300 @@ def profile(user: str, year: int, output_format: str, out: Optional[str]) -> Non
                 click.echo(f"  {field}: {score:.2f}")
 
         click.echo()
+
+
+@cli.command()
+@click.option("--user", type=str, help="User ID (loads latest profile for this user)")
+@click.option("--profile-id", type=str, help="Specific profile ID to analyze")
+@click.option(
+    "--interactive",
+    is_flag=True,
+    help="Enable interactive mode (ask follow-up questions)",
+)
+@click.option(
+    "--output",
+    type=click.Choice(["markdown", "json"], case_sensitive=False),
+    default="markdown",
+    help="Output format (default: markdown)",
+)
+@click.option("--save", is_flag=True, help="Save report to disk")
+@click.option(
+    "--llm-provider",
+    type=click.Choice(["anthropic", "openai"], case_sensitive=False),
+    default=lambda: os.getenv("DEFAULT_LLM_PROVIDER", "openai"),
+    help="LLM provider to use (default: from DEFAULT_LLM_PROVIDER env var or 'openai')",
+)
+def analyze(
+    user: Optional[str],
+    profile_id: Optional[str],
+    interactive: bool,
+    output: str,
+    save: bool,
+    llm_provider: str,
+) -> None:
+    """
+    Analyze tax profile and generate advisory report.
+
+    Analyze latest profile for user:
+        tax-copilot analyze --user john
+
+    Analyze specific profile:
+        tax-copilot analyze --profile-id prof_20240115_abc123
+
+    Interactive mode (ask follow-up questions):
+        tax-copilot analyze --user john --interactive
+
+    Save report to disk:
+        tax-copilot analyze --user john --save
+
+    Export to JSON:
+        tax-copilot analyze --user john --output json > report.json
+    """
+    asyncio.run(_run_analyze(user, profile_id, interactive, output, save, llm_provider))
+
+
+async def _run_analyze(
+    user: Optional[str],
+    profile_id: Optional[str],
+    interactive: bool,
+    output: str,
+    save: bool,
+    llm_provider: str,
+) -> None:
+    """Async implementation of analyze command."""
+    from tax_copilot.agents.advisory import AdvisoryAgent
+
+    # Initialize LLM provider
+    try:
+        provider = create_provider(provider_name=llm_provider)
+    except Exception as e:
+        click.echo(
+            f"Error initializing {llm_provider} provider: {e}\n"
+            f"Make sure you've set the appropriate API key environment variable.",
+            err=True,
+        )
+        return
+
+    # Initialize advisory agent
+    advisor = AdvisoryAgent(llm_provider=provider)
+
+    # Load profile
+    try:
+        if profile_id:
+            # Load specific profile by ID
+            profile = advisor.profile_builder.load_profile_by_id(profile_id)
+        elif user:
+            # Load latest profile for user
+            profile = advisor.get_latest_profile(user_id=user)
+            if not profile:
+                click.echo(
+                    f"No profiles found for user '{user}'.\n\n"
+                    f"Create a profile first using:\n"
+                    f"  tax-copilot precheck --user {user} --year 2024",
+                    err=True,
+                )
+                return
+        else:
+            click.echo(
+                "Error: Either --user or --profile-id required.\n\n"
+                "Examples:\n"
+                "  tax-copilot analyze --user john\n"
+                "  tax-copilot analyze --profile-id prof_20240115_abc123",
+                err=True,
+            )
+            return
+
+    except FileNotFoundError as e:
+        click.echo(f"Profile not found: {e}", err=True)
+        return
+
+    # Display profile info
+    click.echo(f"\n=== Analyzing Tax Profile ===")
+    click.echo(f"User: {getattr(profile, 'user_id', 'unknown')}")
+    click.echo(f"Tax Year: {profile.tax_year}")
+    click.echo(f"Income: {profile.income.total_income}")
+    click.echo(f"Filing Status: {profile.filing_status}")
+    click.echo()
+
+    # Run analysis
+    try:
+        report = await advisor.analyze_profile(profile, interactive=interactive)
+
+        # Save report if requested
+        if save:
+            report_path = advisor.save_report(
+                report, user_id=getattr(profile, "user_id", "unknown")
+            )
+            click.echo(f"\nReport saved to: {report_path}\n")
+
+        # Display report
+        if output == "json":
+            # JSON output
+            click.echo(advisor.report_generator.to_json(report))
+        else:
+            # Markdown output
+            markdown = advisor.report_generator.to_markdown(report, profile)
+            click.echo("\n" + markdown)
+
+    except Exception as e:
+        click.echo(f"\nError during analysis: {e}", err=True)
+        import traceback
+        traceback.print_exc()
+
+
+@cli.command()
+@click.option("--user", type=str, help="Filter by user ID")
+@click.option("--report-id", type=str, help="View specific report")
+@click.option(
+    "--format",
+    "output_format",
+    type=click.Choice(["summary", "markdown", "json"], case_sensitive=False),
+    default="summary",
+    help="Output format (default: summary)",
+)
+def reports(user: Optional[str], report_id: Optional[str], output_format: str) -> None:
+    """
+    List or view saved advisory reports.
+
+    List all reports:
+        tax-copilot reports
+
+    List reports for specific user:
+        tax-copilot reports --user john
+
+    View specific report:
+        tax-copilot reports --report-id rpt_20240115_abc123
+
+    View report as JSON:
+        tax-copilot reports --report-id rpt_xxx --format json
+    """
+    asyncio.run(_run_reports(user, report_id, output_format))
+
+
+async def _run_reports(
+    user: Optional[str], report_id: Optional[str], output_format: str
+) -> None:
+    """Async implementation of reports command."""
+    from tax_copilot.agents.advisory import AdvisoryAgent
+    from tax_copilot.agents.providers.openai_provider import OpenAIProvider
+
+    # Initialize advisor (just for report access, no LLM calls)
+    try:
+        provider = create_provider(provider_name="openai")
+    except:
+        # Fallback - we don't actually need LLM for listing reports
+        provider = None
+
+    if provider:
+        advisor = AdvisoryAgent(llm_provider=provider)
+    else:
+        # Create minimal advisor just for report access
+        from tax_copilot.agents.providers.base import LLMProvider
+
+        class DummyProvider(LLMProvider):
+            async def generate(self, **kwargs):
+                pass
+
+        advisor = AdvisoryAgent(llm_provider=DummyProvider())
+
+    # View specific report
+    if report_id:
+        try:
+            report = advisor.load_report(report_id)
+
+            if output_format == "json":
+                click.echo(advisor.report_generator.to_json(report))
+            elif output_format == "markdown":
+                # Need to load profile to render markdown properly
+                if report.profile_id:
+                    try:
+                        profile = advisor.profile_builder.load_profile_by_id(report.profile_id)
+                    except:
+                        # Create minimal profile from report data
+                        from tax_copilot.core.models import TaxProfile, Income, Deductions, Dependents
+                        profile = TaxProfile(
+                            tax_year=report.tax_year,
+                            filing_status="unknown",
+                            income=Income(),
+                            deductions=Deductions(),
+                            dependents=Dependents(),
+                        )
+                else:
+                    from tax_copilot.core.models import TaxProfile, Income, Deductions, Dependents
+                    profile = TaxProfile(
+                        tax_year=report.tax_year,
+                        filing_status="unknown",
+                        income=Income(),
+                        deductions=Deductions(),
+                        dependents=Dependents(),
+                    )
+
+                markdown = advisor.report_generator.to_markdown(report, profile)
+                click.echo(markdown)
+            else:
+                # Summary format
+                click.echo(f"\n=== Tax Advisory Report ===")
+                click.echo(f"Report ID: {report.report_id}")
+                click.echo(f"User: {report.user_id}")
+                click.echo(f"Tax Year: {report.tax_year}")
+                click.echo(f"Generated: {report.generated_at.strftime('%Y-%m-%d %H:%M:%S')}")
+                click.echo(f"\nTotal Tax: {report.tax_calculation.total_tax}")
+                click.echo(f"Effective Rate: {report.tax_calculation.effective_tax_rate:.1f}%")
+                click.echo(
+                    f"Potential Savings: {advisor.report_generator._format_money_cents(report.optimization_report.total_potential_savings.cents + report.deduction_finder_report.total_potential_savings.cents)}"
+                )
+                click.echo(f"\nStrategies: {len(report.optimization_report.strategies)}")
+                click.echo(
+                    f"Missed Deductions: {len(report.deduction_finder_report.missed_deductions)}"
+                )
+                click.echo()
+
+        except FileNotFoundError:
+            click.echo(f"Report not found: {report_id}", err=True)
+            return
+        except Exception as e:
+            click.echo(f"Error loading report: {e}", err=True)
+            import traceback
+            traceback.print_exc()
+            return
+
+    else:
+        # List reports
+        report_summaries = advisor.list_reports(user_id=user)
+
+        if not report_summaries:
+            filter_msg = f" for user '{user}'" if user else ""
+            click.echo(f"No reports found{filter_msg}.")
+            return
+
+        click.echo("\n=== Saved Reports ===\n")
+        for summary in report_summaries:
+            click.echo(f"Report ID: {summary['report_id']}")
+            click.echo(f"  User: {summary['user_id']}")
+            click.echo(f"  Tax Year: {summary['tax_year']}")
+
+            if summary.get("generated_at"):
+                from datetime import datetime
+                try:
+                    gen_time = datetime.fromisoformat(summary["generated_at"])
+                    click.echo(f"  Generated: {gen_time.strftime('%Y-%m-%d %H:%M:%S')}")
+                except:
+                    click.echo(f"  Generated: {summary['generated_at']}")
+
+            # Format total_tax and potential_savings
+            if isinstance(summary.get("total_tax"), dict):
+                total_tax_cents = summary["total_tax"].get("cents", 0)
+            else:
+                total_tax_cents = summary.get("total_tax", 0)
+
+            if isinstance(summary.get("potential_savings"), dict):
+                savings_cents = summary["potential_savings"].get("cents", 0)
+            else:
+                savings_cents = summary.get("potential_savings", 0)
+
+            click.echo(f"  Total Tax: ${total_tax_cents / 100:,.2f}")
+            click.echo(f"  Potential Savings: ${savings_cents / 100:,.2f}")
+            click.echo()
 
 
 def main() -> None:

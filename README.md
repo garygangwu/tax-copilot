@@ -19,7 +19,9 @@ tax-copilot is a **pure agentic system** with no hardcoded rules. Instead of fol
 2. **Extract structured data** - Convert conversational responses into validated tax profiles
 3. **Provide flexible guidance** - Understand nuances and handle edge cases dynamically
 
-### Current Feature: Precheck Mode (Dynamic Questioning)
+### Features
+
+#### 1. Precheck Mode (Dynamic Questioning)
 
 The **Dynamic Questioning Agent** conducts a conversational tax interview:
 
@@ -43,16 +45,31 @@ Agent: Thanks. Just to confirm - was there any gap between jobs, or
 You: No gap, started the new job the next week
 ```
 
+#### 2. Advisory Mode (Tax Analysis & Optimization)
+
+After collecting your tax information, **Advisory Mode** provides:
+
+- **Tax calculation**: Estimated federal and state tax liability
+- **Optimization strategies**: 3-5 actionable recommendations to reduce taxes
+- **Missed deductions**: Identifies potential deductions/credits you may have overlooked
+- **Personalized report**: Professional advisory report with specific action items
+
+**What you get:**
+- Estimated tax liability with effective and marginal rates
+- Prioritized tax-saving strategies (IRA contributions, bunching donations, etc.)
+- Potential savings analysis
+- Action plan with specific deadlines
+- Interactive mode for follow-up questions
+
 ---
 
 ## What it does NOT do
 
 - ❌ e-file or submit to IRS/state
-- ❌ calculate tax liability
 - ❌ replace TurboTax / FreeTaxUSA / a CPA
-- ❌ provide tax advice or interpretations
+- ❌ provide legally binding tax advice
 
-tax-copilot is designed to help you organize your tax information before using traditional filing tools.
+tax-copilot provides **planning estimates** to help you understand your tax situation. Always consult a licensed tax professional for filing decisions.
 
 ---
 
@@ -132,6 +149,43 @@ tax-copilot profile --user john --year 2024
 tax-copilot profile --user john --year 2024 --format json --out profile.json
 ```
 
+### 6) Analyze Your Tax Situation (Advisory Mode)
+
+Get tax analysis and optimization recommendations:
+```bash
+# Analyze latest profile
+tax-copilot analyze --user john
+
+# Save the report to disk
+tax-copilot analyze --user john --save
+
+# Interactive mode (answer follow-up questions)
+tax-copilot analyze --user john --interactive
+
+# Export to JSON
+tax-copilot analyze --user john --output json > analysis.json
+```
+
+The analysis will:
+1. Calculate your estimated federal and state taxes
+2. Identify 3-5 optimization strategies
+3. Suggest potentially missed deductions
+4. Generate a comprehensive advisory report
+
+### 7) View Saved Reports
+
+List and view your advisory reports:
+```bash
+# List all reports
+tax-copilot reports
+
+# List reports for specific user
+tax-copilot reports --user john
+
+# View specific report
+tax-copilot reports --report-id rpt_20241228_abc123
+```
+
 ---
 
 ## CLI Reference
@@ -155,8 +209,13 @@ tax-copilot precheck --session <session_id>
 tax-copilot precheck --list [--user <user_id>] [--year <tax_year>]
 ```
 
+**Force complete stuck session:**
+```bash
+tax-copilot precheck --session <session_id> --force-complete
+```
+
 **Options:**
-- `--llm-provider`: Choose LLM provider (`anthropic` or `openai`, default: `anthropic`)
+- `--llm-provider`: Choose LLM provider (`anthropic` or `openai`, default from env or `openai`)
 
 ### `tax-copilot profile`
 
@@ -171,6 +230,48 @@ tax-copilot profile --user <user_id> --year <tax_year>
 ```bash
 tax-copilot profile --user <user_id> --year <tax_year> --format json --out profile.json
 ```
+
+### `tax-copilot analyze`
+
+Analyze tax profile and generate advisory report.
+
+**Analyze latest profile:**
+```bash
+tax-copilot analyze --user <user_id>
+```
+
+**Analyze specific profile:**
+```bash
+tax-copilot analyze --profile-id <profile_id>
+```
+
+**Options:**
+- `--interactive`: Enable follow-up questions about missed deductions
+- `--save`: Save report to `~/.tax_copilot/reports/`
+- `--output`: Output format (`markdown` or `json`, default: `markdown`)
+- `--llm-provider`: Choose LLM provider (`anthropic` or `openai`)
+
+### `tax-copilot reports`
+
+List or view saved advisory reports.
+
+**List all reports:**
+```bash
+tax-copilot reports
+```
+
+**Filter by user:**
+```bash
+tax-copilot reports --user <user_id>
+```
+
+**View specific report:**
+```bash
+tax-copilot reports --report-id <report_id>
+```
+
+**Options:**
+- `--format`: Output format (`summary`, `markdown`, or `json`, default: `summary`)
 
 
 ### Running Tests

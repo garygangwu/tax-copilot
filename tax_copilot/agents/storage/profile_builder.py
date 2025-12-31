@@ -2,7 +2,7 @@
 
 import re
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 
 from tax_copilot.core.conversation import Session
@@ -449,3 +449,67 @@ class ProfileBuilder:
 
         profile_json = file_path.read_text()
         return TaxProfile.model_validate_json(profile_json)
+
+    def load_profile_by_id(self, profile_id: str) -> TaxProfile:
+        """
+        Load a profile by its ID (filename without .json).
+
+        Args:
+            profile_id: Profile ID (e.g., "user_2024" or full filename)
+
+        Returns:
+            TaxProfile object
+
+        Raises:
+            FileNotFoundError: If profile doesn't exist
+        """
+        # Remove .json extension if present
+        if profile_id.endswith(".json"):
+            profile_id = profile_id[:-5]
+
+        file_path = self.profiles_dir / f"{profile_id}.json"
+
+        if not file_path.exists():
+            raise FileNotFoundError(f"Profile not found: {profile_id}")
+
+        profile_json = file_path.read_text()
+        return TaxProfile.model_validate_json(profile_json)
+
+    def list_profiles(self, user_id: str | None = None) -> list[TaxProfile]:
+        """
+        List all saved profiles, optionally filtered by user.
+
+        Args:
+            user_id: Optional user ID to filter by
+
+        Returns:
+            List of TaxProfile objects, sorted by updated_at (newest first)
+        """
+        if not self.profiles_dir.exists():
+            return []
+
+        profiles = []
+
+        for profile_file in self.profiles_dir.glob("*.json"):
+            # Skip if filtering by user and filename doesn't match
+            if user_id and not profile_file.stem.startswith(f"{user_id}_"):
+                continue
+
+            try:
+                profile_json = profile_file.read_text()
+                profile = TaxProfile.model_validate_json(profile_json)
+                profiles.append(profile)
+            except Exception as e:
+                print(f"Error loading profile {profile_file}: {e}")
+                continue
+
+        # Sort by updated_at (newest first), then created_at
+        profiles.sort(
+            key=lambda p: (
+                p.updated_at if p.updated_at else datetime.min,
+                p.created_at if p.created_at else datetime.min,
+            ),
+            reverse=True,
+        )
+
+        return profiles

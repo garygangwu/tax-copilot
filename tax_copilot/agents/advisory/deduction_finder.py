@@ -73,12 +73,12 @@ class DeductionFinder:
             def priority_score(d: MissedDeduction) -> float:
                 likelihood_scores = {"high": 1.0, "medium": 0.6, "low": 0.3}
                 likelihood_mult = likelihood_scores.get(d.likelihood, 0.5)
-                return d.estimated_value.cents * likelihood_mult
+                return d.estimated_value.dollars * likelihood_mult
 
             missed_deductions.sort(key=priority_score, reverse=True)
 
             # Calculate total potential savings
-            total_savings_cents = sum(d.estimated_value.cents for d in missed_deductions)
+            total_savings_dollars = sum(d.estimated_value.dollars for d in missed_deductions)
 
             # Extract follow-up questions
             follow_up_questions = [
@@ -89,7 +89,7 @@ class DeductionFinder:
 
             return DeductionFinderReport(
                 missed_deductions=missed_deductions,
-                total_potential_savings=Money(cents=total_savings_cents),
+                total_potential_savings=Money(dollars=total_savings_dollars),
                 follow_up_questions=follow_up_questions,
             )
 

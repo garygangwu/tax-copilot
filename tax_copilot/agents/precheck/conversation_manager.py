@@ -1,7 +1,7 @@
 """Conversation manager - orchestrates dialog flow and state transitions."""
 
 from typing import Any
-
+import json
 from tax_copilot.core.conversation import Session, ConversationState
 from tax_copilot.agents.providers.base import LLMProvider, Message
 from tax_copilot.agents.storage.session_store import SessionStore

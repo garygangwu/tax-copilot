@@ -2,7 +2,7 @@
 
 import asyncio
 from typing import Any
-
+import json
 from tax_copilot.core.models import TaxProfile, Money
 from tax_copilot.agents.providers.base import LLMProvider, Message
 from tax_copilot.agents.utils import parse_json_response
@@ -59,13 +59,13 @@ class TaxCalculator:
             state_data = state_result
 
         # Build final calculation
-        federal_tax = Money(cents=federal_data.get("federal_tax", 0))
-        state_tax = Money(cents=state_data.get("state_tax", 0))
-        total_tax = Money(cents=federal_tax.cents + state_tax.cents)
+        federal_tax = Money(dollars=federal_data.get("federal_tax", 0))
+        state_tax = Money(dollars=state_data.get("state_tax", 0))
+        total_tax = Money(dollars=federal_tax.dollars + state_tax.dollars)
 
         # Calculate refund/owed (simplified - assumes no withholding info)
         # Negative means owed, positive means refund
-        refund_or_owed = Money(cents=-total_tax.cents)
+        refund_or_owed = Money(dollars=-total_tax.dollars)
 
         # Merge breakdown data
         breakdown = {
@@ -193,13 +193,13 @@ class TaxCalculator:
         Returns:
             Dictionary with estimated federal tax data
         """
-        income_cents = profile.income.total_income.cents
-        estimated_tax_cents = int(income_cents * 0.15)  # 15% rough estimate
+        income_dollars = profile.income.total_income.dollars
+        estimated_tax_dollars = income_dollars * 0.15  # 15% rough estimate
 
         return {
-            "federal_tax": estimated_tax_cents,
+            "federal_tax": estimated_tax_dollars,
             "breakdown": {
-                "total_income": income_cents,
+                "total_income": income_dollars,
                 "effective_tax_rate": 15.0,
                 "marginal_tax_rate": 22.0,  # Common bracket
             },

@@ -55,7 +55,7 @@ def parse_json_response(response_text: str) -> dict[str, Any]:
 
     # Parse JSON
     try:
-        return json.loads(text)
+        return parse_json_response(text)
     except json.JSONDecodeError as e:
         # Add context to error message
         preview = text[:200] + "..." if len(text) > 200 else text

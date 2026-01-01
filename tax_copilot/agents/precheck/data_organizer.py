@@ -81,7 +81,7 @@ Reorganize this data into the standard tax profile structure with these EXACT to
 If PII appears in the raw data, EXCLUDE it from the organized output.
 
 **income** should contain:
-- total_income (total of all income sources, in dollars or cents)
+- total_income (total of all income sources, in dollars)
 - w2_count (number of W-2 jobs, default to 1 if has employment income)
 - employment_income (W-2 wages)
 - investment_income (from stocks, bonds, crypto, etc.)
@@ -111,7 +111,7 @@ If PII appears in the raw data, EXCLUDE it from the organized output.
 1. **Remove duplicates**: If same data appears with multiple field names (e.g., "salary", "employment_income", "annual_salary"), keep the most standard name ("employment_income") and remove others
 2. **Consolidate similar fields**: Multiple donation-related fields → single "charitable_contributions"
 3. **Move misplaced data**: If charitable donations are in "income", move to "deductions"
-4. **Convert to consistent format**: All monetary amounts should be numbers (dollars)
+4. **Convert to consistent format**: All monetary amounts should be numbers representing dollars (e.g., 70000 for $70,000)
 5. **Calculate totals**: If you see short_term + long_term capital gains, create "investment_income" as the sum
 6. **Use null for missing data**: Don't invent values
 7. **Remove metadata fields**: Remove fields like "donation_qualified_organization", "donation_method" - these are verification details, not core tax data
@@ -129,14 +129,14 @@ If PII appears in the raw data, EXCLUDE it from the organized output.
     "state": "..."
   }},
   "income": {{
-    "total_income": 700000,
-    "employment_income": 700000,
+    "total_income": 70000,
+    "employment_income": 70000,
     "w2_count": 1,
-    "investment_income": 2000000,
+    "investment_income": 20000,
     "rental_income": 5000
   }},
   "deductions": {{
-    "charitable_contributions": 1325000
+    "charitable_contributions": 13250
   }},
   "dependents": {{
     "count": 0,

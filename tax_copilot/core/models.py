@@ -14,39 +14,38 @@ class Severity(str, Enum):
 
 
 class Money(BaseModel):
-    """Money stored as integer cents.
+    """Money stored as dollars (float or int).
 
-    For Day 1, this is intentionally simple.
+    For rough tax calculations, cent-level precision is not needed.
 
     JSON accepted forms:
-      - an integer (treated as cents)
-      - an object {"cents": <int>}
+      - a number (treated as dollars)
+      - an object {"dollars": <number>}
 
     Example:
-      "total_income": 18000000   # $180,000.00
+      "total_income": 180000   # $180,000
     """
 
-    cents: int = 0
+    dollars: float = 0.0
 
     @model_validator(mode="before")
     @classmethod
-    def coerce_int_to_money(cls, v: Any) -> Any:
+    def coerce_number_to_money(cls, v: Any) -> Any:
         if isinstance(v, Money):
             return v
-        if isinstance(v, int):
-            return {"cents": v}
+        if isinstance(v, (int, float)):
+            return {"dollars": float(v)}
         return v
 
     @classmethod
     def from_dollars(cls, dollars: float) -> "Money":
-        # Day 1: best-effort conversion. Prefer passing cents directly.
-        return cls(cents=int(round(dollars * 100)))
+        return cls(dollars=float(dollars))
 
     def to_dollars(self) -> float:
-        return self.cents / 100.0
+        return self.dollars
 
     def __str__(self) -> str:
-        return f"${self.to_dollars():,.2f}"
+        return f"${self.dollars:,.2f}"
 
 
 class Income(BaseModel):

@@ -75,18 +75,18 @@ class OptimizationAgent:
                 )
 
                 # Filter out low-value strategies (< $100 savings)
-                if strategy.potential_savings.cents >= 10000:  # $100 in cents
+                if strategy.potential_savings.dollars >= 100:
                     strategies.append(strategy)
 
             # Sort by potential savings (descending)
-            strategies.sort(key=lambda s: s.potential_savings.cents, reverse=True)
+            strategies.sort(key=lambda s: s.potential_savings.dollars, reverse=True)
 
             # Calculate total potential savings
-            total_savings_cents = sum(s.potential_savings.cents for s in strategies)
+            total_savings_dollars = sum(s.potential_savings.dollars for s in strategies)
 
             return OptimizationReport(
                 strategies=strategies,
-                total_potential_savings=Money(cents=total_savings_cents),
+                total_potential_savings=Money(dollars=total_savings_dollars),
                 reasoning=data.get("reasoning", ""),
             )
 

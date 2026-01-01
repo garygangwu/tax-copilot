@@ -60,16 +60,16 @@ Calculate the estimated federal income tax liability for {profile.tax_year} usin
 
 **Response Format (JSON):**
 {{
-  "federal_tax": <tax liability in cents>,
+  "federal_tax": <tax liability in dollars>,
   "breakdown": {{
-    "total_income": <in cents>,
-    "agi": <in cents>,
-    "taxable_income": <in cents>,
-    "standard_deduction": <in cents>,
-    "tax_before_credits": <in cents>,
-    "child_tax_credit": <in cents>,
-    "total_credits": <in cents>,
-    "final_tax": <in cents>,
+    "total_income": <in dollars>,
+    "agi": <in dollars>,
+    "taxable_income": <in dollars>,
+    "standard_deduction": <in dollars>,
+    "tax_before_credits": <in dollars>,
+    "child_tax_credit": <in dollars>,
+    "total_credits": <in dollars>,
+    "final_tax": <in dollars>,
     "marginal_tax_rate": <percentage>,
     "effective_tax_rate": <percentage>
   }},
@@ -113,13 +113,13 @@ Calculate the estimated state income tax liability for {state} in {profile.tax_y
 
 **Response Format (JSON):**
 {{
-  "state_tax": <tax liability in cents, 0 if no state income tax>,
+  "state_tax": <tax liability in dollars, 0 if no state income tax>,
   "has_income_tax": true or false,
   "breakdown": {{
-    "state_taxable_income": <in cents>,
+    "state_taxable_income": <in dollars>,
     "state_tax_rate": <percentage if flat tax, or "progressive">,
-    "state_standard_deduction": <in cents>,
-    "final_state_tax": <in cents>
+    "state_standard_deduction": <in dollars>,
+    "final_state_tax": <in dollars>
   }},
   "assumptions": [
     "List any assumptions made"
@@ -189,7 +189,7 @@ Identify 3-5 actionable tax optimization strategies that could reduce their {pro
       "strategy_id": "ira_contribution",
       "title": "Maximize Traditional IRA Contribution",
       "description": "You're currently in the {calculation.marginal_tax_rate:.0f}% tax bracket. Contributing the maximum $6,500 (or $7,500 if 50+) to a traditional IRA would reduce your taxable income and save approximately $X in taxes.",
-      "potential_savings": <estimated tax savings in cents>,
+      "potential_savings": <estimated tax savings in dollars>,
       "effort_level": "low" or "medium" or "high",
       "deadline": "April 15, {profile.tax_year + 1}",
       "action_steps": [
@@ -205,7 +205,7 @@ Identify 3-5 actionable tax optimization strategies that could reduce their {pro
     }},
     // ... 2-4 more strategies
   ],
-  "total_potential_savings": <sum of all strategy savings in cents>,
+  "total_potential_savings": <sum of all strategy savings in dollars>,
   "reasoning": "Brief explanation of why these specific strategies were chosen based on the user's situation"
 }}
 
@@ -266,7 +266,7 @@ Identify common deductions and credits this person might qualify for but haven't
     {{
       "deduction_name": "Charitable Contributions",
       "category": "itemized_deduction",
-      "estimated_value": <potential tax savings in cents>,
+      "estimated_value": <potential tax savings in dollars>,
       "likelihood": "high" or "medium" or "low",
       "why_suggested": "Most taxpayers make charitable donations but forget to track them. Even if not itemizing, there may be special provisions.",
       "follow_up_question": "Did you make any charitable donations to qualified organizations in {profile.tax_year}? This includes cash, goods, or appreciated assets.",
@@ -278,7 +278,7 @@ Identify common deductions and credits this person might qualify for but haven't
     }},
     // ... more missed deductions
   ],
-  "total_potential_savings": <sum of all estimated savings in cents>,
+  "total_potential_savings": <sum of all estimated savings in dollars>,
   "follow_up_questions": [
     "Did you make any charitable donations in {profile.tax_year}?",
     "Are you a teacher? You may qualify for educator expense deduction.",

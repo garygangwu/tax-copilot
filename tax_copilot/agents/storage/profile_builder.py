@@ -100,28 +100,28 @@ class ProfileBuilder:
         )
 
         # If no total_income found, try to calculate from components
-        if total_income.cents == 0:
+        if total_income.dollars == 0:
             employment = self._parse_money(income_data.get("employment_income", 0))
             investment = self._parse_money(income_data.get("investment_income", 0))
             rental = self._parse_money(income_data.get("rental_income", 0))
             self_employment = self._parse_money(income_data.get("self_employment_income", 0))
 
-            total_cents = (
-                employment.cents
-                + investment.cents
-                + rental.cents
-                + self_employment.cents
+            total_dollars = (
+                employment.dollars
+                + investment.dollars
+                + rental.dollars
+                + self_employment.dollars
             )
 
-            if total_cents > 0:
-                total_income = Money(cents=total_cents)
+            if total_dollars > 0:
+                total_income = Money(dollars=total_dollars)
 
         # Try multiple field names for w2_count
         w2_count = int(
             income_data.get("w2_count")
             or income_data.get("employer_count")
             or income_data.get("number_of_employers")
-            or (1 if total_income.cents > 0 else 0)  # Fallback: if has income, assume 1 W-2
+            or (1 if total_income.dollars > 0 else 0)  # Fallback: if has income, assume 1 W-2
         )
 
         # IRA contribution
@@ -161,22 +161,22 @@ class ProfileBuilder:
         )
 
         # If no itemized_total but has components, calculate it
-        if itemized_total.cents == 0 and itemized:
+        if itemized_total.dollars == 0 and itemized:
             charitable = self._parse_money(deductions_data.get("charitable_contributions", 0))
             mortgage = self._parse_money(deductions_data.get("mortgage_interest", 0))
             state_local = self._parse_money(deductions_data.get("state_local_taxes", 0))
             medical = self._parse_money(deductions_data.get("medical_expenses", 0))
 
-            total_cents = (
-                charitable.cents
-                + mortgage.cents
-                + state_local.cents
-                + medical.cents
-                + student_loan_interest.cents
+            total_dollars = (
+                charitable.dollars
+                + mortgage.dollars
+                + state_local.dollars
+                + medical.dollars
+                + student_loan_interest.dollars
             )
 
-            if total_cents > 0:
-                itemized_total = Money(cents=total_cents)
+            if total_dollars > 0:
+                itemized_total = Money(dollars=total_dollars)
 
         return Deductions(
             student_loan_interest=student_loan_interest,
@@ -226,7 +226,7 @@ class ProfileBuilder:
         Parse money value from various formats.
 
         Handles:
-        - integers (as cents)
+        - integers (as dollars)
         - floats (as dollars)
         - strings like "$85,000" or "85000" or "around $2,000"
         - Money objects (passthrough)
@@ -239,19 +239,14 @@ class ProfileBuilder:
             Money object
         """
         if value is None:
-            return Money(cents=0)
+            return Money(dollars=0)
 
         if isinstance(value, Money):
             return value
 
         if isinstance(value, int):
-            # If value is very large, likely already in cents
-            # If small (< 10000), might be dollars
-            if value >= 10000:
-                return Money(cents=value)
-            else:
-                # Ambiguous - default to cents for safety
-                return Money(cents=value)
+            # Treat integers as dollars (data_organizer outputs values in dollars)
+            return Money.from_dollars(float(value))
 
         if isinstance(value, float):
             # Treat as dollars
@@ -263,20 +258,17 @@ class ProfileBuilder:
             cleaned = re.sub(r"[^\d.]", "", value)
 
             if not cleaned:
-                return Money(cents=0)
+                return Money(dollars=0)
 
             try:
                 amount = float(cleaned)
-                # If amount has decimal point or is < 10000, treat as dollars
-                if "." in value or amount < 10000:
-                    return Money.from_dollars(amount)
-                else:
-                    return Money(cents=int(amount))
+                # Treat all parsed string values as dollars
+                return Money.from_dollars(amount)
             except ValueError:
-                return Money(cents=0)
+                return Money(dollars=0)
 
         # Fallback
-        return Money(cents=0)
+        return Money(dollars=0)
 
     def _calculate_confidence_scores(
         self, extracted_data: dict[str, Any]

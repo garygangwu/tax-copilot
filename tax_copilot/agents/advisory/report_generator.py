@@ -147,7 +147,7 @@ class ReportGenerator:
             lines.append("")
 
             for i, strategy in enumerate(report.optimization_report.strategies[:5], 1):
-                emoji = "💰" if strategy.potential_savings.cents >= 100000 else "💵"
+                emoji = "💰" if strategy.potential_savings.dollars >= 1000 else "💵"
                 lines.append(
                     f"### {i}. {strategy.title} {emoji} Est. Savings: {self._format_money(strategy.potential_savings)}"
                 )
@@ -267,8 +267,8 @@ class ReportGenerator:
     ) -> str:
         """Build default executive summary."""
         total_potential = (
-            optimizations.total_potential_savings.cents
-            + missed_deductions.total_potential_savings.cents
+            optimizations.total_potential_savings.dollars
+            + missed_deductions.total_potential_savings.dollars
         )
 
         summary = (

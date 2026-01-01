@@ -8,7 +8,7 @@ from typing import Optional
 import click
 from dotenv import load_dotenv
 
-from tax_copilot.core.models import TaxProfile
+from tax_copilot.core.models import TaxProfile, Money
 
 # Import agentic components
 from tax_copilot.agents.providers import create_provider
@@ -639,8 +639,12 @@ async def _run_reports(
                 click.echo(f"Generated: {report.generated_at.strftime('%Y-%m-%d %H:%M:%S')}")
                 click.echo(f"\nTotal Tax: {report.tax_calculation.total_tax}")
                 click.echo(f"Effective Rate: {report.tax_calculation.effective_tax_rate:.1f}%")
+                total_savings = Money(
+                    dollars=report.optimization_report.total_potential_savings.dollars
+                    + report.deduction_finder_report.total_potential_savings.dollars
+                )
                 click.echo(
-                    f"Potential Savings: {advisor.report_generator._format_money_cents(report.optimization_report.total_potential_savings.cents + report.deduction_finder_report.total_potential_savings.cents)}"
+                    f"Potential Savings: {advisor.report_generator._format_money(total_savings)}"
                 )
                 click.echo(f"\nStrategies: {len(report.optimization_report.strategies)}")
                 click.echo(

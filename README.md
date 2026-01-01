@@ -340,15 +340,6 @@ Contributions are welcome! Tax Copilot is in active development and there's lots
 - 🌐 **UI**: Web interface for non-technical users
 - 📊 **Visualizations**: Charts and graphs for tax breakdown
 
-### How to Contribute
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Make your changes
-4. Run tests and linters
-5. Submit a pull request
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
-
 ---
 
 ## 📝 License
@@ -365,16 +356,6 @@ This is open source software. Use it freely, modify it, and share it. No warrant
 - 💡 **Feature Requests**: [GitHub Discussions](https://github.com/garygangwu/tax-copilot/discussions)
 - 📖 **Documentation**: Check the [docs](docs/) folder
 - ⭐ **Star the Project**: Show your support!
-
----
-
-## 🙏 Acknowledgments
-
-Built with:
-- [Anthropic Claude](https://anthropic.com/) - Advanced LLM capabilities
-- [OpenAI GPT](https://openai.com/) - Alternative LLM provider
-- [Pydantic](https://pydantic.dev/) - Data validation
-- [Click](https://click.palletsprojects.com/) - CLI framework
 
 ---
 

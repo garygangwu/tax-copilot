@@ -1,37 +1,54 @@
-# tax-copilot
+# 🧮 Tax Copilot
 
-**tax-copilot** is an AI-powered assistant that helps you collect and organize your personal tax information through intelligent conversation — **it does NOT file taxes**.
+**Your AI-Powered Tax Planning Assistant**
 
-It uses a dynamic questioning agent to gather accurate tax data, adapting questions based on your responses to build a complete tax profile.
+Tax Copilot is an intelligent tax consultant that combines conversational AI with expert tax analysis to help you understand, optimize, and plan your taxes — all through natural conversation.
 
-> ⚠️ Disclaimer: tax-copilot is for informational purposes only and is not tax, legal, or financial advice.
-> Always verify with official sources or a qualified tax professional.
+```bash
+# Get started in 3 commands
+pip install -e .
+tax-copilot precheck --user you --year 2024
+tax-copilot analyze --user you --interactive
+```
+
+## 🎯 What You Get
+
+- **💬 Smart Tax Interview** - No forms, just conversation. Answer questions naturally while AI extracts structured data
+- **📊 Tax Calculation** - Instant federal and state tax estimates with effective and marginal rates
+- **💡 Optimization Strategies** - 3-5 personalized recommendations to reduce your tax bill (IRA contributions, bunching, timing, etc.)
+- **🔍 Missed Deductions** - AI identifies overlooked deductions and credits specific to your situation
+- **📄 Professional Reports** - Get CPA-style advisory reports with action items and deadlines
+- **💾 Complete Privacy** - All data stays on your machine, never sent to third parties
+
+> ⚠️ **Disclaimer**: Tax Copilot is for informational and planning purposes only. It does NOT file taxes or provide legally binding advice. Always consult a qualified tax professional for filing decisions.
 
 ---
 
-## What it does
+## 🚀 How It Works
 
-### Pure Agentic Approach
+Tax Copilot is a **pure agentic system** - no hardcoded rules or rigid checklists. Instead, it uses advanced LLMs to intelligently adapt to your unique tax situation:
 
-tax-copilot is a **pure agentic system** with no hardcoded rules. Instead of following rigid checklists, it uses LLM to:
+### 1️⃣ Smart Data Collection (Precheck Mode)
+Talk naturally about your finances. The AI asks contextual follow-up questions, understands nuances, and builds a complete tax profile.
 
-1. **Conduct intelligent interviews** - Ask contextual questions that adapt to your situation
-2. **Extract structured data** - Convert conversational responses into validated tax profiles
-3. **Provide flexible guidance** - Understand nuances and handle edge cases dynamically
+### 2️⃣ Expert Analysis (Advisory Mode)
+AI tax experts analyze your profile to:
+- Calculate federal and state tax liability
+- Identify optimization opportunities
+- Find overlooked deductions and credits
+- Generate actionable recommendations
 
-### Features
+### 3️⃣ Continuous Optimization
+Interactive mode lets you explore "what-if" scenarios and get follow-up guidance on implementing strategies.
 
-#### 1. Precheck Mode (Dynamic Questioning)
+---
 
-The **Dynamic Questioning Agent** conducts a conversational tax interview:
+## ✨ Key Features
 
-- **Contextual follow-ups**: Questions adapt based on your previous answers
-- **Natural language understanding**: Answer in plain English, no forms or codes
-- **Session persistence**: Pause and resume interviews anytime
-- **Confidence tracking**: System tracks certainty of extracted data
-- **Local storage**: All data stays on your machine in `~/.tax_copilot/`
+### 💬 Conversational Tax Interview (Precheck Mode)
 
-**Example conversation:**
+Forget rigid forms. Just talk naturally about your finances:
+
 ```
 Agent: Let's start with your income. Did you have a W-2 job in 2024?
 You: Yes, I worked at two companies
@@ -45,275 +62,322 @@ Agent: Thanks. Just to confirm - was there any gap between jobs, or
 You: No gap, started the new job the next week
 ```
 
-#### 2. Advisory Mode (Tax Analysis & Optimization)
+**Features:**
+- 🎯 **Contextual questions** that adapt to your situation
+- 🗣️ **Plain English** - no tax jargon required
+- ⏸️ **Pause & resume** anytime
+- 📍 **Confidence tracking** - system knows what it's certain about
+- 🔒 **Local storage** - data stays in `~/.tax_copilot/`
 
-After collecting your tax information, **Advisory Mode** provides:
+### 📊 Expert Tax Analysis (Advisory Mode)
 
-- **Tax calculation**: Estimated federal and state tax liability
-- **Optimization strategies**: 3-5 actionable recommendations to reduce taxes
-- **Missed deductions**: Identifies potential deductions/credits you may have overlooked
-- **Personalized report**: Professional advisory report with specific action items
+Get professional-grade tax analysis and optimization recommendations:
 
-**What you get:**
-- Estimated tax liability with effective and marginal rates
-- Prioritized tax-saving strategies (IRA contributions, bunching donations, etc.)
-- Potential savings analysis
-- Action plan with specific deadlines
-- Interactive mode for follow-up questions
+**Tax Calculation**
+- Federal and state tax liability estimates
+- Effective and marginal tax rates
+- Detailed breakdown (AGI, deductions, credits, etc.)
+
+**Optimization Strategies** (3-5 personalized recommendations)
+- Traditional IRA contributions
+- Bunching charitable donations
+- Tax-loss harvesting
+- Timing strategies for income/deductions
+- Estimated savings for each strategy
+
+**Missed Deductions Finder**
+- Identifies overlooked deductions and credits
+- Follow-up questions to qualify you
+- Requirements and documentation needed
+
+**Example Output:**
+```
+╔════════════════════════════════════════════════════════════════╗
+║                  2024 TAX ADVISORY REPORT                      ║
+╚════════════════════════════════════════════════════════════════╝
+
+Total Income: $85,000.00
+Estimated Federal Tax: $12,750 (15% effective rate)
+Estimated State Tax (CA): $3,825
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+TOP OPTIMIZATION STRATEGIES
+
+1. 💰 Maximize Traditional IRA - Est. Savings: $1,430
+   → Contribute $7,000 to reduce taxable income
+   → Deadline: April 15, 2025
+
+2. 💵 Bunch Charitable Donations - Est. Savings: $800
+   → Combine 2 years of donations into one
+   → Only if you can itemize
+
+Total Potential Savings: $2,230
+```
 
 ---
 
-## What it does NOT do
+## 🤔 Why Tax Copilot?
 
-- ❌ e-file or submit to IRS/state
-- ❌ replace TurboTax / FreeTaxUSA / a CPA
-- ❌ provide legally binding tax advice
+| Traditional Tax Software | Tax Copilot |
+|-------------------------|-------------|
+| Fill out rigid forms | Natural conversation |
+| Generic advice for everyone | Personalized to your situation |
+| Filing-focused only | Planning + optimization focused |
+| Pay per return | Free and open source |
+| Black box calculations | Transparent AI reasoning |
 
-tax-copilot provides **planning estimates** to help you understand your tax situation. Always consult a licensed tax professional for filing decisions.
+**Perfect for:**
+- 💡 Tax planning and optimization (before filing)
+- 📚 Understanding your tax situation
+- 🔍 Finding deductions you might miss
+- 💭 Exploring "what-if" scenarios
+- 🎓 Learning about taxes through conversation
+
+**Not a replacement for:**
+- ❌ E-filing or IRS submission
+- ❌ Legal tax advice from a CPA
+- ❌ Tax preparation software (TurboTax, etc.)
+
+Tax Copilot is a **planning companion** that helps you understand and optimize your taxes. Use it before filing season to maximize savings!
 
 ---
 
-## Quickstart
+## 🚀 Quickstart
 
 ### Prerequisites
 - Python 3.11+
-- Anthropic API key (Claude) or OpenAI API key (GPT)
+- API key from [Anthropic](https://console.anthropic.com/) (Claude) or [OpenAI](https://platform.openai.com/api-keys) (GPT)
 
-### 1) Setup
+### Installation (2 minutes)
+
 ```bash
-git clone https://github.com/<your-org>/tax-copilot.git
+# Clone and setup
+git clone https://github.com/garygangwu/tax-copilot.git
 cd tax-copilot
 python -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-pip install -U pip
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
 pip install -e .
-```
 
-### 2) Configure API Key
-
-Create a `.env` file in the project root:
-```bash
-# Copy example and edit with your key
+# Configure API key
 cp .env.example .env
+# Edit .env and add: ANTHROPIC_API_KEY=sk-ant-your-key-here
 ```
 
-Edit `.env` and add your API key:
-```
-ANTHROPIC_API_KEY=sk-ant-your-key-here
-# Or for OpenAI:
-OPENAI_API_KEY=sk-your-key-here
-```
+### Usage
 
-Get API keys:
-- Anthropic (Claude): https://console.anthropic.com/
-- OpenAI (GPT): https://platform.openai.com/api-keys
-
-### 3) Run Your First Interview
-
-Start collecting tax information:
+#### 1️⃣ Start a Tax Interview
 ```bash
 tax-copilot precheck --user john --year 2024
 ```
 
-The agent will guide you through a conversational interview, asking about:
-- Filing status
-- Income sources (W-2, self-employment, investments)
-- Deductions (student loans, itemized deductions)
-- Dependents
-- Other relevant tax information
+Talk naturally about your income, deductions, and filing status. The AI will ask smart follow-up questions.
 
-**Commands during interview:**
-- Type your answers naturally
-- Type `exit` or `quit` to pause
-- Press `Ctrl+C` to interrupt
+**Commands:** Type your answers naturally | `exit` to pause | `Ctrl+C` to stop
 
-### 4) Resume a Paused Interview
-
-If you exit an interview, resume it later:
+#### 2️⃣ Get Your Tax Analysis
 ```bash
-# List your sessions
-tax-copilot precheck --list
-
-# Resume a specific session
-tax-copilot precheck --session sess_20240115_103000_abc123
+tax-copilot analyze --user john --interactive
 ```
 
-### 5) View Your Tax Profile
+Get instant tax calculations, optimization strategies, and missed deduction alerts. Interactive mode lets you explore follow-up questions.
 
-After completing an interview:
+**Pro tip:** Use `--save` to keep a copy of your report!
+
+#### 3️⃣ View & Export
 ```bash
-# View summary
+# View your tax profile
 tax-copilot profile --user john --year 2024
 
-# Export to JSON
-tax-copilot profile --user john --year 2024 --format json --out profile.json
-```
-
-### 6) Analyze Your Tax Situation (Advisory Mode)
-
-Get tax analysis and optimization recommendations:
-```bash
-# Analyze latest profile
-tax-copilot analyze --user john
-
-# Save the report to disk
-tax-copilot analyze --user john --save
-
-# Interactive mode (answer follow-up questions)
-tax-copilot analyze --user john --interactive
+# List all advisory reports
+tax-copilot reports --user john
 
 # Export to JSON
 tax-copilot analyze --user john --output json > analysis.json
 ```
 
-The analysis will:
-1. Calculate your estimated federal and state taxes
-2. Identify 3-5 optimization strategies
-3. Suggest potentially missed deductions
-4. Generate a comprehensive advisory report
+### Quick Commands Cheat Sheet
 
-### 7) View Saved Reports
-
-List and view your advisory reports:
 ```bash
-# List all reports
-tax-copilot reports
+# Resume a paused interview
+tax-copilot precheck --list                    # See all sessions
+tax-copilot precheck --session <session_id>    # Resume
 
-# List reports for specific user
-tax-copilot reports --user john
+# Analyze with options
+tax-copilot analyze --user john --save         # Save report
+tax-copilot analyze --user john --interactive  # Follow-up questions
+tax-copilot analyze --profile-id <id>          # Analyze specific profile
 
-# View specific report
-tax-copilot reports --report-id rpt_20241228_abc123
+# View reports
+tax-copilot reports                            # List all
+tax-copilot reports --user john                # Filter by user
+tax-copilot reports --report-id <id>           # View specific report
 ```
 
 ---
 
-## CLI Reference
+## 🏗️ Architecture & Technology
 
-### `tax-copilot precheck`
+Tax Copilot is built as a **pure agentic system** using advanced LLM capabilities:
 
-Start or continue a tax interview.
+### Multi-Agent Architecture
+- **Questioning Agent** - Conducts dynamic interviews, adapts questions contextually
+- **Data Organizer** - Extracts and structures information from conversational responses
+- **Tax Calculator** - Computes federal and state tax liability using current tax code
+- **Optimization Agent** - Identifies personalized tax-saving strategies
+- **Deduction Finder** - Discovers overlooked deductions and credits
 
-**Start new interview:**
+### Key Technologies
+- **LLM Providers**: Anthropic Claude / OpenAI GPT
+- **Structured Outputs**: JSON schema-based extraction for reliability
+- **Session Management**: Persistent storage with resume capability
+- **Confidence Tracking**: Per-field confidence scores for data quality
+
+### Why Agentic?
+Unlike traditional rule-based systems, Tax Copilot uses LLMs to:
+- ✅ Understand nuanced tax situations
+- ✅ Ask contextually relevant follow-up questions
+- ✅ Handle edge cases without hardcoded logic
+- ✅ Provide personalized explanations and reasoning
+- ✅ Adapt to tax code changes without code updates
+
+---
+
+## 📚 CLI Reference
+
+<details>
+<summary><b>tax-copilot precheck</b> - Conversational tax interview</summary>
+
 ```bash
+# Start new interview
 tax-copilot precheck --user <user_id> --year <tax_year>
-```
 
-**Resume existing:**
-```bash
+# Resume existing interview
 tax-copilot precheck --session <session_id>
+
+# List all sessions
+tax-copilot precheck --list [--user <user_id>]
+
+# Options
+--llm-provider <anthropic|openai>  # Choose LLM provider
+--force-complete                    # Force complete stuck session
 ```
+</details>
 
-**List sessions:**
+<details>
+<summary><b>tax-copilot analyze</b> - Generate tax advisory report</summary>
+
 ```bash
-tax-copilot precheck --list [--user <user_id>] [--year <tax_year>]
-```
-
-**Force complete stuck session:**
-```bash
-tax-copilot precheck --session <session_id> --force-complete
-```
-
-**Options:**
-- `--llm-provider`: Choose LLM provider (`anthropic` or `openai`, default from env or `openai`)
-
-### `tax-copilot profile`
-
-View or export saved tax profiles.
-
-**View summary:**
-```bash
-tax-copilot profile --user <user_id> --year <tax_year>
-```
-
-**Export to JSON:**
-```bash
-tax-copilot profile --user <user_id> --year <tax_year> --format json --out profile.json
-```
-
-### `tax-copilot analyze`
-
-Analyze tax profile and generate advisory report.
-
-**Analyze latest profile:**
-```bash
+# Analyze latest profile
 tax-copilot analyze --user <user_id>
-```
 
-**Analyze specific profile:**
-```bash
+# Analyze specific profile
 tax-copilot analyze --profile-id <profile_id>
+
+# Options
+--interactive              # Enable follow-up Q&A
+--save                    # Save report to disk
+--output <markdown|json>  # Output format
+--llm-provider            # Choose LLM provider
 ```
+</details>
 
-**Options:**
-- `--interactive`: Enable follow-up questions about missed deductions
-- `--save`: Save report to `~/.tax_copilot/reports/`
-- `--output`: Output format (`markdown` or `json`, default: `markdown`)
-- `--llm-provider`: Choose LLM provider (`anthropic` or `openai`)
+<details>
+<summary><b>tax-copilot profile</b> - View/export tax profiles</summary>
 
-### `tax-copilot reports`
-
-List or view saved advisory reports.
-
-**List all reports:**
 ```bash
-tax-copilot reports
+# View summary
+tax-copilot profile --user <user_id> --year <tax_year>
+
+# Export to JSON
+tax-copilot profile --user <user_id> --year <tax_year> --format json --out file.json
 ```
+</details>
 
-**Filter by user:**
-```bash
-tax-copilot reports --user <user_id>
-```
+<details>
+<summary><b>tax-copilot reports</b> - Manage advisory reports</summary>
 
-**View specific report:**
 ```bash
+# List all reports
+tax-copilot reports [--user <user_id>]
+
+# View specific report
 tax-copilot reports --report-id <report_id>
+
+# Options
+--format <summary|markdown|json>  # Output format
 ```
+</details>
 
-**Options:**
-- `--format`: Output format (`summary`, `markdown`, or `json`, default: `summary`)
+---
 
+## 🧪 Development
 
 ### Running Tests
-
 ```bash
 pip install -e ".[test]"
 pytest
 ```
 
 ### Code Quality
-
 ```bash
 pip install -e ".[dev]"
-
-# Format code
-black tax_copilot/
-
-# Lint code
-ruff check tax_copilot/
+black tax_copilot/        # Format
+ruff check tax_copilot/   # Lint
 ```
 
 ---
 
-## Contributing
+## 🤝 Contributing
 
-Contributions welcome! This project is in active development.
+Contributions are welcome! Tax Copilot is in active development and there's lots to build.
 
-**Areas needing help:**
-- Unit tests for agentic components
-- Additional LLM provider integrations
-- Document parsing (W-2, 1099 extraction)
-- State-specific tax rules
+### Priority Areas
+- 🧪 **Testing**: Unit tests for agentic components
+- 🔌 **Integrations**: Additional LLM providers (Gemini, local models)
+- 📄 **Document Parsing**: Extract data from W-2, 1099 forms
+- 🗺️ **State Tax Rules**: Better state-specific calculations
+- 🌐 **UI**: Web interface for non-technical users
+- 📊 **Visualizations**: Charts and graphs for tax breakdown
+
+### How to Contribute
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Make your changes
+4. Run tests and linters
+5. Submit a pull request
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
 
 ---
 
-## License
+## 📝 License
 
-MIT License - see LICENSE file for details.
+MIT License - see [LICENSE](LICENSE) file for details.
+
+This is open source software. Use it freely, modify it, and share it. No warranties - use at your own risk!
 
 ---
 
-## Support
+## 💬 Support & Community
 
-- **Issues**: https://github.com/garygangwu/tax-copilot/issues
-- **Discussions**: https://github.com/garygangwu/tax-copilot/discussions
+- 🐛 **Report Bugs**: [GitHub Issues](https://github.com/garygangwu/tax-copilot/issues)
+- 💡 **Feature Requests**: [GitHub Discussions](https://github.com/garygangwu/tax-copilot/discussions)
+- 📖 **Documentation**: Check the [docs](docs/) folder
+- ⭐ **Star the Project**: Show your support!
+
+---
+
+## 🙏 Acknowledgments
+
+Built with:
+- [Anthropic Claude](https://anthropic.com/) - Advanced LLM capabilities
+- [OpenAI GPT](https://openai.com/) - Alternative LLM provider
+- [Pydantic](https://pydantic.dev/) - Data validation
+- [Click](https://click.palletsprojects.com/) - CLI framework
+
+---
+
+**Remember**: Tax Copilot is a planning tool, not a tax filing service. Always consult a qualified tax professional for official advice.
+
+**Happy tax planning! 🎉**

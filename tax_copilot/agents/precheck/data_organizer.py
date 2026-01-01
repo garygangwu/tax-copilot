@@ -2,6 +2,7 @@
 
 from typing import Any
 
+import json
 from tax_copilot.core.conversation import Session
 from tax_copilot.agents.providers.base import LLMProvider, Message
 from tax_copilot.agents.utils import parse_json_response

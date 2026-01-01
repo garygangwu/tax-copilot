@@ -240,6 +240,7 @@ async def _run_precheck(
         click.echo(f"Agent: {resume_info['last_question']}\n")
 
         current_session_id = session_id
+        user = resume_info['user_id']
 
     else:
         # Start new interview
@@ -292,7 +293,7 @@ async def _run_precheck(
                     click.echo("=" * 50)
                     click.echo(
                         f"\nYour tax profile has been saved to:\n"
-                        f"  ~/.tax_copilot/profiles/{profile.user_id}_{profile.tax_year}.json\n"
+                        f"  ~/.tax_copilot/profiles/{user}_{profile.tax_year}.json\n"
                     )
                     click.echo("You can now use this profile for tax analysis.")
                 else:

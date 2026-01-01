@@ -190,6 +190,7 @@ class QuestioningAgent:
                 break
 
         return {
+            "user_id": session.user_id,
             "session_id": session.session_id,
             "last_question": last_question,
             "session_state": session.state.value,

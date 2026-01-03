@@ -60,16 +60,16 @@ Calculate the estimated federal income tax liability for {profile.tax_year} usin
 
 **Response Format (JSON):**
 {{
-  "federal_tax": <tax liability in dollars>,
+  "federal_tax": <tax liability in dollars, no commas>,
   "breakdown": {{
-    "total_income": <in dollars>,
-    "agi": <in dollars>,
-    "taxable_income": <in dollars>,
-    "standard_deduction": <in dollars>,
-    "tax_before_credits": <in dollars>,
-    "child_tax_credit": <in dollars>,
-    "total_credits": <in dollars>,
-    "final_tax": <in dollars>,
+    "total_income": <in dollars, no commas>,
+    "agi": <in dollars, no commas>,
+    "taxable_income": <in dollars, no commas>,
+    "standard_deduction": <in dollars, no commas>,
+    "tax_before_credits": <in dollars, no commas>,
+    "child_tax_credit": <in dollars, no commas>,
+    "total_credits": <in dollars, no commas>,
+    "final_tax": <in dollars, no commas>,
     "marginal_tax_rate": <percentage>,
     "effective_tax_rate": <percentage>
   }},
@@ -79,7 +79,9 @@ Calculate the estimated federal income tax liability for {profile.tax_year} usin
   "confidence": "high" or "medium" or "low"
 }}
 
-Provide ONLY the JSON response, nothing else."""
+**IMPORTANT**:
+- Use plain numbers without commas (e.g., 891450 not 891,450)
+- Return ONLY valid JSON, nothing else"""
 
 
 def get_state_tax_prompt(profile: TaxProfile) -> str:
@@ -136,7 +138,9 @@ If {state} is "unknown" or not provided, return:
   "confidence": "low"
 }}
 
-Provide ONLY the JSON response, nothing else."""
+**IMPORTANT**:
+- Use plain numbers without commas (e.g., 50000 not 50,000)
+- Return ONLY valid JSON, nothing else"""
 
 
 def get_optimization_prompt(profile: TaxProfile, calculation: TaxCalculation) -> str:
@@ -209,7 +213,9 @@ Identify 3-5 actionable tax optimization strategies that could reduce their {pro
   "reasoning": "Brief explanation of why these specific strategies were chosen based on the user's situation"
 }}
 
-Provide ONLY the JSON response, nothing else."""
+**IMPORTANT**:
+- Use plain numbers without commas (e.g., 1430 not 1,430)
+- Return ONLY valid JSON, nothing else"""
 
 
 def get_deduction_finder_prompt(profile: TaxProfile) -> str:
@@ -286,7 +292,9 @@ Identify common deductions and credits this person might qualify for but haven't
   ]
 }}
 
-Provide ONLY the JSON response, nothing else."""
+**IMPORTANT**:
+- Use plain numbers without commas (e.g., 1500 not 1,500)
+- Return ONLY valid JSON, nothing else"""
 
 
 def get_executive_summary_prompt(

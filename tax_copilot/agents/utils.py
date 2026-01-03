@@ -53,6 +53,14 @@ def parse_json_response(response_text: str) -> dict[str, Any]:
     # Additional cleanup: remove any leading/trailing backticks or markdown
     text = text.strip('`').strip()
 
+    # Remove commas from numbers (LLMs often format numbers like 891,450)
+    # This regex finds numbers with commas and removes the commas
+    # Pattern: digit(s), comma, digit(s) - can repeat multiple times
+    text = re.sub(r'(\d+),(\d+)', r'\1\2', text)
+    # Need to apply multiple times for numbers like 1,234,567
+    while ',\d' in text:
+        text = re.sub(r'(\d+),(\d+)', r'\1\2', text)
+
     # Parse JSON
     try:
         return json.loads(text)

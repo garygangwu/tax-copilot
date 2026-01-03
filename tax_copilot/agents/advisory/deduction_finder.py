@@ -60,7 +60,7 @@ class DeductionFinder:
                 deduction = MissedDeduction(
                     deduction_name=deduction_data.get("deduction_name", ""),
                     category=deduction_data.get("category", ""),
-                    estimated_value=Money(cents=deduction_data.get("estimated_value", 0)),
+                    estimated_value=Money(dollars=deduction_data.get("estimated_value", 0)),
                     likelihood=deduction_data.get("likelihood", "medium"),
                     why_suggested=deduction_data.get("why_suggested", ""),
                     follow_up_question=deduction_data.get("follow_up_question"),
